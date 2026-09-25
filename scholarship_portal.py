@@ -218,20 +218,13 @@ def main(page: ft.Page):
 
     def toggle_theme(e):
         """Switch between dark and light theme modes."""
-        if page.theme_mode == ft.ThemeMode.DARK:
-            page.theme_mode = ft.ThemeMode.LIGHT
-            theme_button.icon = ft.Icons.DARK_MODE_OUTLINED
-            theme_button.tooltip = "Switch to dark mode"
-        else:
-            page.theme_mode = ft.ThemeMode.DARK
-            theme_button.icon = ft.Icons.LIGHT_MODE_OUTLINED
-            theme_button.tooltip = "Switch to light mode"
+        page.theme_mode = ft.ThemeMode.DARK if theme_switch.value else ft.ThemeMode.LIGHT
         page.update()
 
-    theme_button = ft.IconButton(
-        icon=ft.Icons.LIGHT_MODE_OUTLINED,
-        tooltip="Switch to light mode",
-        on_click=toggle_theme,
+    theme_switch = ft.Switch(
+        label="Dark Mode",
+        value=True,
+        on_change=toggle_theme,
     )
 
     # ------------------------------------------------------------------------
@@ -385,7 +378,7 @@ def main(page: ft.Page):
                             spacing=2
                         ),
                         ft.Container(expand=True),
-                        theme_button,
+                        theme_switch,
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
