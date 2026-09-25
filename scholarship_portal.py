@@ -92,10 +92,9 @@ class ScholarshipValidator:
         Returns: Normalized student ID.
         Raises: IDFormatError if invalid.
         """
-        # TODO: Implement ID validation using cls.STUDENT_ID_REGEX
         clean = cls.sanitize_string(value)
         if not clean:
-            raise ScholarshipValidationError("Student ID is required.")
+            raise IDFormatError("Student ID is required.")
         if not cls.STUDENT_ID_REGEX.match(clean):
             raise IDFormatError("Invalid Student ID. Expected format: YYYY-NNNN (e.g., 2024-0123).")
         return clean
@@ -107,12 +106,11 @@ class ScholarshipValidator:
         Returns: Lowercased, sanitized email.
         Raises: EmailDomainError if invalid.
         """
-        # TODO: Implement email validation using cls.CSPC_EMAIL_REGEX
-        clean = cls.sanitize_string(value)
+        clean = cls.sanitize_string(value).lower()
         if not clean:
-            raise ScholarshipValidationError("Email address is required.")
+            raise EmailDomainError("Institutional email is required.")
         if not cls.CSPC_EMAIL_REGEX.match(clean):
-            raise EmailDomainError("Institutional email required (must end with @cspc.edu.ph),")
+            raise EmailDomainError("Institutional email required (must end with @cspc.edu.ph).")
         return clean
 
     @classmethod
@@ -122,14 +120,13 @@ class ScholarshipValidator:
         Returns: Normalized 11-digit phone string.
         Raises: ScholarshipValidationError if invalid.
         """
-        # TODO: Implement phone validation using cls.PH_PHONE_REGEX
-        clean = cls.sanitize_string(value)
-        if clean.startswith("+63"):
-            clean = "0" + clean[3:]  # Convert +63 to 0
+        clean = cls.sanitize_string(value).replace(" ", "").replace("-", "")
         if not clean:
             raise ScholarshipValidationError("Mobile number is required.")
         if not cls.PH_PHONE_REGEX.match(clean):
             raise ScholarshipValidationError("Invalid mobile number. Expected: 09XXXXXXXXX or +639XXXXXXXXX.")
+        if clean.startswith("+63"):
+            clean = "0" + clean[3:]
         return clean
 
     @classmethod
@@ -139,12 +136,14 @@ class ScholarshipValidator:
         Returns: Parsed float value.
         Raises: GWARangeError if out of bounds or non-numeric.
         """
-        # TODO: Implement defensive float parsing and range check
+        clean = cls.sanitize_string(value)
         try:
-            clean = cls.sanitize_string(value)
             gwa_float = float(clean)
         except (ValueError, TypeError):
             raise GWARangeError("GWA must be a valid number between 1.00 and 5.00.")
+        if gwa_float < 1.00 or gwa_float > 5.00:
+            raise GWARangeError("GWA must be between 1.00 and 5.00.")
+        return round(gwa_float, 2)
 
 
 # ============================================================================
@@ -261,7 +260,6 @@ def main(page: ft.Page):
             has_errors = True
 
         # 2. Validate Student ID
-        # TODO: Wrap validate_student_id in try...except and set id_field.error
         try:
             clean_id = ScholarshipValidator.validate_student_id(id_field.value)
         except ScholarshipValidationError as err:
@@ -269,7 +267,6 @@ def main(page: ft.Page):
             has_errors = True
 
         # 3. Validate Email
-        # TODO: Wrap validate_email in try...except and set email_field.error
         try:
             clean_email = ScholarshipValidator.validate_email(email_field.value)
         except ScholarshipValidationError as err:
@@ -277,7 +274,6 @@ def main(page: ft.Page):
             has_errors = True
 
         # 4. Validate Phone
-        # TODO: Wrap validate_phone in try...except and set phone_field.error
         try:
             clean_phone = ScholarshipValidator.validate_phone(phone_field.value)
         except ScholarshipValidationError as err:
@@ -285,7 +281,6 @@ def main(page: ft.Page):
             has_errors = True
 
         # 5. Validate GWA
-        # TODO: Wrap validate_gwa in try...except and set gwa_field.error
         try:
             clean_gwa = ScholarshipValidator.validate_gwa(gwa_field.value)
         except ScholarshipValidationError as err:
@@ -310,9 +305,34 @@ def main(page: ft.Page):
             return
 
         # 7. All Validations Passed: Instantiate Domain Contract
-        # TODO: Construct ScholarshipApplicant dataclass object
-        # TODO: Append to approved_applicants list
-        # TODO: Display green success SnackBar and reset form fields
+        if not has_errors:
+            applicant = ScholarshipApplicant(
+                full_name=clean_name,
+                student_id=clean_id,
+                email=clean_email,
+                phone=clean_phone,
+                gwa=clean_gwa,
+                program=program_dropdown.value
+            )
+            approved_applicants.append(applicant)
+
+            # Reset form fields
+            name_field.value = ""
+            id_field.value = ""
+            email_field.value = ""
+            phone_field.value = ""
+            gwa_field.value = ""
+            program_dropdown.value = None
+
+            page.show_dialog(
+                ft.SnackBar(
+                    content=ft.Text(f"Application accepted for {clean_name}!"),
+                    bgcolor=ft.Colors.GREEN_700,
+                    behavior=ft.SnackBarBehavior.FLOATING
+                )
+            )
+
+            status_summary.value = f"Total approved applicants: {len(approved_applicants)}"
 
         page.update()
 
