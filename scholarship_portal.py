@@ -216,6 +216,24 @@ def main(page: ft.Page):
         size=13
     )
 
+    def toggle_theme(e):
+        """Switch between dark and light theme modes."""
+        if page.theme_mode == ft.ThemeMode.DARK:
+            page.theme_mode = ft.ThemeMode.LIGHT
+            theme_button.icon = ft.Icons.DARK_MODE_OUTLINED
+            theme_button.tooltip = "Switch to dark mode"
+        else:
+            page.theme_mode = ft.ThemeMode.DARK
+            theme_button.icon = ft.Icons.LIGHT_MODE_OUTLINED
+            theme_button.tooltip = "Switch to light mode"
+        page.update()
+
+    theme_button = ft.IconButton(
+        icon=ft.Icons.LIGHT_MODE_OUTLINED,
+        tooltip="Switch to light mode",
+        on_click=toggle_theme,
+    )
+
     # ------------------------------------------------------------------------
     # REAL-TIME ERROR CLEARING HANDLERS (UX ENHANCEMENT)
     # ------------------------------------------------------------------------
@@ -365,8 +383,11 @@ def main(page: ft.Page):
                                 ft.Text("Office of Student Affairs & Services • Academic Year 2026–2027", size=12, color=ft.Colors.GREY_400)
                             ],
                             spacing=2
-                        )
-                    ]
+                        ),
+                        ft.Container(expand=True),
+                        theme_button,
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
                 ft.Divider(height=20, color=ft.Colors.OUTLINE_VARIANT),
                 name_field,
