@@ -50,6 +50,7 @@ class ScholarshipApplicant:
     program: str
     submitted_at: datetime = field(default_factory=datetime.now)
 
+   
 
 # ============================================================================
 # TIER 2: VALIDATION ENGINE (STUDENT IMPLEMENTATION)
@@ -261,19 +262,35 @@ def main(page: ft.Page):
 
         # 2. Validate Student ID
         # TODO: Wrap validate_student_id in try...except and set id_field.error
-        clean_id = None
+        try:
+            clean_id = ScholarshipValidator.validate_student_id(id_field.value)
+        except ScholarshipValidationError as err:
+            id_field.error = str(err)
+            has_errors = True
 
         # 3. Validate Email
         # TODO: Wrap validate_email in try...except and set email_field.error
-        clean_email = None
+        try:
+            clean_email = ScholarshipValidator.validate_email(email_field.value)
+        except ScholarshipValidationError as err:
+            email_field.error = str(err)
+            has_errors = True
 
         # 4. Validate Phone
         # TODO: Wrap validate_phone in try...except and set phone_field.error
-        clean_phone = None
+        try:
+            clean_phone = ScholarshipValidator.validate_phone(phone_field.value)
+        except ScholarshipValidationError as err:
+            phone_field.error = str(err)
+            has_errors = True
 
         # 5. Validate GWA
         # TODO: Wrap validate_gwa in try...except and set gwa_field.error
-        clean_gwa = None
+        try:
+            clean_gwa = ScholarshipValidator.validate_gwa(gwa_field.value)
+        except ScholarshipValidationError as err:
+            gwa_field.error = str(err)
+            has_errors = True
 
         # 6. Validate Program Selection
         if not program_dropdown.value:
